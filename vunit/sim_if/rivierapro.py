@@ -297,7 +297,8 @@ class RivieraProInterface(VsimSimulatorMixin, SimulatorInterface):
         ]
 
         if config.sim_options.get("enable_coverage", False):
-            coverage_file_path = str(Path(output_path) / "coverage.acdb")
+            test_suite_name = test_suite_name.replace(" ", "_")
+            coverage_file_path = str(Path(output_path) / f"{test_suite_name}.acdb")
             self._coverage_files.add(coverage_file_path)
             vsim_flags += [f"-acdb_file {{{coverage_file_path!s}}}"]
 

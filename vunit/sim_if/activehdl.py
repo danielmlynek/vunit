@@ -223,7 +223,7 @@ class ActiveHDLInterface(SimulatorInterface):
 
         return " ".join(vsim_extra_args)
 
-    def _create_load_function(self, config, output_path):
+    def _create_load_function(self, test_suite_name, config, output_path):
         """
         Create the vunit_load TCL function that runs the vsim command and loads the design
         """
@@ -250,7 +250,8 @@ class ActiveHDLInterface(SimulatorInterface):
             vsim_flags.append(config.vhdl_configuration_name)
 
         if config.sim_options.get("enable_coverage", False):
-            coverage_file_path = str(Path(output_path) / "coverage.acdb")
+            test_suite_name = test_suite_name.replace(" ", "_")
+            coverage_file_path = str(Path(output_path) / f"{test_suite_name}.acdb")
             self._coverage_files.add(coverage_file_path)
             vsim_flags += [f"-acdb_file {{{fix_path(coverage_file_path)!s}}}"]
 
@@ -412,7 +413,7 @@ proc vunit_restart {{}} {{
 }}
 """
 
-    def _create_common_script(self, config, output_path):
+    def _create_common_script(self, test_suite_name, config, output_path):
         """
         Create tcl script with functions common to interactive and batch modes
         """
@@ -436,7 +437,7 @@ proc vunit_help {} {
 """
 
         tcl += get_is_test_suite_done_tcl(get_result_file_name(output_path))
-        tcl += self._create_load_function(config, output_path)
+        tcl += self._create_load_function(test_suite_name, config, output_path)
         tcl += self._create_run_function()
         tcl += self._create_restart_function()
         tcl += "scripterconf -tcl\n"
@@ -530,7 +531,7 @@ proc vunit_help {} {
         batch_file_name = script_path / "batch.tcl"
         gui_file_name = script_path / "gui.tcl"
 
-        write_file(common_file_name, self._create_common_script(config, output_path))
+        write_file(common_file_name, self._create_common_script(test_suite_name, config, output_path))
         write_file(gui_file_name, self._create_gui_script(str(common_file_name), config))
         write_file(
             str(batch_file_name),
